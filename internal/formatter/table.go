@@ -9,7 +9,7 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 
-	"github.com/pyrex41/claude-usage/internal/types"
+	"claude-usage/internal/types"
 )
 
 func FormatJSON(w io.Writer, res *types.AggResult) error {
@@ -100,9 +100,11 @@ func FormatTable(w io.Writer, res *types.AggResult, compact, breakdown bool) {
 					t.AppendRow(row)
 				}
 
-				// Add daily total row
-				totalTokens := b.InputTokens + b.OutputTokens + b.CacheCreate + b.CacheRead
-				t.AppendRow(table.Row{"", "", "→ TOTAL", formatNum(b.InputTokens), formatNum(b.OutputTokens), formatNum(b.CacheCreate), formatNum(b.CacheRead), formatNum(totalTokens), formatCost(b.TotalCost)})
+				// Add daily total row only if there's data
+				if b.InputTokens > 0 || b.OutputTokens > 0 || b.CacheCreate > 0 || b.CacheRead > 0 {
+					totalTokens := b.InputTokens + b.OutputTokens + b.CacheCreate + b.CacheRead
+					t.AppendRow(table.Row{"", "", "→ TOTAL", formatNum(b.InputTokens), formatNum(b.OutputTokens), formatNum(b.CacheCreate), formatNum(b.CacheRead), formatNum(totalTokens), formatCost(b.TotalCost)})
+				}
 			}
 		}
 	} else {
