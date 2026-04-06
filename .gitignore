@@ -1,6 +1,6 @@
 # Binaries
-claude-usage
-ccusage
+/claude-usage
+/ccusage
 
 # Build artifacts
 *.exe
