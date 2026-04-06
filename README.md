@@ -18,7 +18,7 @@ This is a Go rewrite of the original TypeScript `ccusage` tool, providing 5-10x 
 
 ```bash
 # Method 1: Using the install script
-git clone https://github.com/yourusername/claude-usage.git
+git clone https://github.com/pyrex41/claude-usage.git
 cd claude-usage
 ./install.sh
 
@@ -29,7 +29,7 @@ go install ./cmd/claude-usage
 ### From Makefile
 
 ```bash
-git clone https://github.com/yourusername/claude-usage.git
+git clone https://github.com/pyrex41/claude-usage.git
 cd claude-usage
 make install
 ```
@@ -37,16 +37,16 @@ make install
 ### Option 2: Build locally
 
 ```bash
-git clone https://github.com/yourusername/claude-usage.git
+git clone https://github.com/pyrex41/claude-usage.git
 cd claude-usage
-go build -o claude-usage ./cmd/ccusage
+go build -o claude-usage ./cmd/claude-usage
 sudo mv claude-usage /usr/local/bin/
 ```
 
 ### Option 3: Direct build
 
 ```bash
-go install github.com/yourusername/claude-usage/cmd/ccusage@latest
+go install github.com/pyrex41/claude-usage/cmd/claude-usage@latest
 ```
 
 ## Usage
