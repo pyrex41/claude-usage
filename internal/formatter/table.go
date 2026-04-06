@@ -9,7 +9,7 @@ import (
 
 	"github.com/jedib0t/go-pretty/v6/table"
 
-	"claude-usage/internal/types"
+	"github.com/pyrex41/claude-usage/internal/types"
 )
 
 func FormatJSON(w io.Writer, res *types.AggResult) error {
