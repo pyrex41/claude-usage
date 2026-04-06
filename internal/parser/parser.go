@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"claude-usage/internal/types"
+	"github.com/pyrex41/claude-usage/internal/types"
 )
 
 type Parser struct {

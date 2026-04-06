@@ -1,4 +1,4 @@
-module claude-usage
+module github.com/pyrex41/claude-usage
 
 go 1.25.6
 

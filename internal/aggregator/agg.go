@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"claude-usage/internal/pricing"
-	"claude-usage/internal/types"
+	"github.com/pyrex41/claude-usage/internal/pricing"
+	"github.com/pyrex41/claude-usage/internal/types"
 )
 
 type ReportType string
