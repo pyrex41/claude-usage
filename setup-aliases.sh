@@ -54,6 +54,17 @@ if [ -f "$FISH_CONFIG" ] || command -v fish >/dev/null 2>&1; then
         touch "$FISH_CONFIG"
     fi
     
+    # Add Go bin to PATH if not already present
+    if ! grep -q "go/bin" "$FISH_CONFIG" 2>/dev/null; then
+        echo "" >> "$FISH_CONFIG"
+        echo "# Go bin directory" >> "$FISH_CONFIG"
+        echo "if test -d ~/go/bin" >> "$FISH_CONFIG"
+        echo "    set -gx PATH ~/go/bin \$PATH" >> "$FISH_CONFIG"
+        echo "end" >> "$FISH_CONFIG"
+        echo "✅ Added Go bin to Fish PATH"
+    fi
+    
+    # Add alias
     if grep -q "alias $ALIAS_NAME " "$FISH_CONFIG" 2>/dev/null; then
         echo "✅ Alias already exists in Fish config"
     else

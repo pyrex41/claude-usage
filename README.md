@@ -76,7 +76,9 @@ claude-usage daily --help          # Show all options
 
 **Pro tip:** Use `gcu daily --instances --compact` for the most readable project-based view.
 
-The installer automatically sets up `gcu` as an alias for `claude-usage` in bash, zsh, and fish.
+The installer automatically sets up:
+- `gcu` as an alias for `claude-usage` in bash, zsh, and fish
+- `~/go/bin` permanently added to your fish PATH
 
 ## Flags
 
