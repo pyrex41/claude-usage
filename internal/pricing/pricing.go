@@ -1,4 +1,3 @@
-// Clean pricing.go
 package pricing
 
 import (
@@ -12,6 +11,7 @@ import (
 var (
 	pricesMu sync.RWMutex
 	prices   = make(map[string]*LiteLLMPrice)
+	loadDone chan struct{}
 )
 
 type LiteLLMPrice struct {
@@ -26,39 +26,52 @@ type LiteLLMPrice struct {
 
 const url = "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"
 
-func LoadPrices(offline bool) error {
+// LoadPricesAsync starts fetching prices in the background.
+// CalcCost will use hardcoded fallbacks until the fetch completes.
+func LoadPricesAsync(offline bool) {
+	loadDone = make(chan struct{})
 	if offline {
-		return nil
+		close(loadDone)
+		return
 	}
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
-	var models []LiteLLMPrice
-	if err := json.Unmarshal(body, &models); err != nil {
-		return err
-	}
-	pricesMu.Lock()
-	defer pricesMu.Unlock()
-	for _, m := range models {
-		if strings.HasPrefix(m.Model, "claude/") || strings.HasPrefix(m.Model, "anthropic/") {
-			prices[m.Model] = &m
+	go func() {
+		defer close(loadDone)
+		resp, err := http.Get(url)
+		if err != nil {
+			return
 		}
+		defer resp.Body.Close()
+		body, _ := io.ReadAll(resp.Body)
+		var models []LiteLLMPrice
+		if err := json.Unmarshal(body, &models); err != nil {
+			return
+		}
+		pricesMu.Lock()
+		defer pricesMu.Unlock()
+		for _, m := range models {
+			if strings.HasPrefix(m.Model, "claude/") || strings.HasPrefix(m.Model, "anthropic/") {
+				prices[m.Model] = &m
+			}
+		}
+	}()
+}
+
+// WaitForPrices blocks until price loading is complete (or failed).
+func WaitForPrices() {
+	if loadDone != nil {
+		<-loadDone
 	}
-	return nil
 }
 
 func CalcCost(model string, input, output, cc, cr uint64, speed string) float64 {
-	// Try exact match first
+	pricesMu.RLock()
 	p := prices[model]
 	if p == nil {
-		// Try anthropic/ prefix
 		p = prices["anthropic/"+model]
 	}
+	pricesMu.RUnlock()
+
 	if p == nil {
-		// Hardcoded fallback for common models
 		return calcHardcoded(model, input, output, cc, cr, speed)
 	}
 	rateIn, rateOut := p.Input/1e6, p.Output/1e6

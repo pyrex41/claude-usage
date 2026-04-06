@@ -48,9 +48,12 @@ func (a *Aggregator) Aggregate(ch <-chan types.Event) {
 }
 
 func (a *Aggregator) addEvent(e types.Event) {
-	t := e.Time()
-	if t.IsZero() || t.Year() < 2020 {
-		return
+	t := e.ParsedTime
+	if t.IsZero() {
+		t = e.Time()
+		if t.IsZero() || t.Year() < 2020 {
+			return
+		}
 	}
 
 	a.mu.Lock()

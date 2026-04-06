@@ -19,9 +19,10 @@ type Event struct {
 		ID    string `json:"id,omitempty"`
 	} `json:"message"`
 	CostUSD   float64 `json:"costUSD,omitempty"`
-	RequestID string  `json:"requestId,omitempty"`
-	Project   string  `json:"project,omitempty"`
-	Instance  string  `json:"instance,omitempty"`
+	RequestID  string    `json:"requestId,omitempty"`
+	Project    string    `json:"project,omitempty"`
+	Instance   string    `json:"instance,omitempty"`
+	ParsedTime time.Time `json:"-"`
 }
 
 func (e *Event) Time() time.Time {

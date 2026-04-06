@@ -15,6 +15,18 @@ import (
 
 type Parser struct {
 	Filters types.Filters
+	since   time.Time
+	until   time.Time
+}
+
+func (p *Parser) Init() {
+	if p.Filters.Since != "" {
+		p.since, _ = time.Parse("20060102", p.Filters.Since)
+	}
+	if p.Filters.Until != "" {
+		p.until, _ = time.Parse("20060102", p.Filters.Until)
+		p.until = p.until.Add(24*time.Hour - time.Second)
+	}
 }
 
 func (p *Parser) ParseFiles(paths []string, ch chan<- types.Event, wg *sync.WaitGroup) {
@@ -106,6 +118,9 @@ func isUUID(s string) bool {
 	return true
 }
 
+// timestampPrefix is used for quick pre-filtering before JSON decode.
+var timestampKey = []byte(`"timestamp":"`)
+
 func (p *Parser) parseFile(path string, ch chan<- types.Event) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -133,66 +148,91 @@ func (p *Parser) parseFile(path string, ch chan<- types.Event) {
 		proj = "Unknown Project"
 	}
 
-	// For files directly in project folder (no session subdir), use project name as session
-	// For files in session subdirs, use session name (or project if UUID)
+	if p.Filters.Project != "" && proj != p.Filters.Project {
+		return
+	}
+
 	inst := filepath.Base(path)
 	inst = strings.TrimSuffix(inst, ".jsonl")
 	if isUUID(inst) || inst == proj || sessionDir == "" {
 		inst = proj
 	}
 
+	// Build date prefix for quick pre-filter (e.g. "2026-04-06")
+	var sincePrefix []byte
+	if !p.since.IsZero() {
+		sincePrefix = []byte(p.since.Format("2006-01-02"))
+	}
+
 	scanner := bufio.NewScanner(f)
+	buf := make([]byte, 0, 256*1024)
+	scanner.Buffer(buf, 1024*1024)
+
 	for scanner.Scan() {
 		line := scanner.Bytes()
-		dec := json.NewDecoder(bytes.NewReader(line))
+
+		// Quick pre-filter: if we have a since date and the line contains a timestamp
+		// that's clearly before our range, skip the expensive JSON decode.
+		// This works because JSONL log timestamps are in RFC3339 and lexicographically sortable.
+		if sincePrefix != nil {
+			if idx := bytes.Index(line, timestampKey); idx >= 0 {
+				tsStart := idx + len(timestampKey)
+				if tsStart+10 <= len(line) {
+					dateBytes := line[tsStart : tsStart+10]
+					if bytes.Compare(dateBytes, sincePrefix) < 0 {
+						continue
+					}
+				}
+			}
+		}
+
 		var event types.Event
-		if err := dec.Decode(&event); err != nil {
+		if err := json.Unmarshal(line, &event); err != nil {
 			continue
 		}
 		t := event.Time()
 		if t.IsZero() || t.Year() < 2020 {
 			continue
 		}
-		if !p.filter(t, proj) {
+		if !p.filter(t) {
 			continue
 		}
 		event.Project = proj
 		event.Instance = inst
-		select {
-		case ch <- event:
-		default:
-		}
+		event.ParsedTime = t
+		ch <- event
 	}
 }
 
-func (p *Parser) filter(t time.Time, proj string) bool {
-	if p.Filters.Since != "" {
-		since, _ := time.Parse("20060102", p.Filters.Since)
-		if t.Before(since) {
-			return false
-		}
+func (p *Parser) filter(t time.Time) bool {
+	if !p.since.IsZero() && t.Before(p.since) {
+		return false
 	}
-	if p.Filters.Until != "" {
-		until, _ := time.Parse("20060102", p.Filters.Until)
-		if t.After(until.Add(24*time.Hour - time.Second)) {
-			return false
-		}
-	}
-	if p.Filters.Project != "" && proj != p.Filters.Project {
+	if !p.until.IsZero() && t.After(p.until) {
 		return false
 	}
 	return true
 }
 
-func FindFiles(basePath string) ([]string, error) {
+func FindFiles(basePath string, since *time.Time) ([]string, error) {
 	var paths []string
 	err := filepath.Walk(basePath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err
+			return nil
 		}
-		if !info.IsDir() && strings.HasSuffix(info.Name(), ".jsonl") {
-			paths = append(paths, path)
+		if info.IsDir() {
+			// Skip directories that can't contain relevant files based on mtime
+			// (but only prune leaf-level dirs, not parent dirs that contain subdirs)
+			return nil
 		}
+		if !strings.HasSuffix(info.Name(), ".jsonl") {
+			return nil
+		}
+		// Skip files last modified before the since date
+		if since != nil && info.ModTime().Before(*since) {
+			return nil
+		}
+		paths = append(paths, path)
 		return nil
 	})
 	return paths, err
