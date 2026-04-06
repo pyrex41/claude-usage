@@ -18,17 +18,20 @@ echo "✅ Go detected: $(go version)"
 echo "📦 Building and installing..."
 go install ./cmd/claude-usage
 
+# Setup shell aliases (gcu command)
+echo "🔧 Setting up shell aliases..."
+./setup-aliases.sh
+
 # Check if installation was successful
 if command -v claude-usage >/dev/null 2>&1; then
     echo "✅ Successfully installed!"
     echo ""
-    echo "Usage:"
-    echo "  claude-usage daily                    # Daily report"
-    echo "  claude-usage daily --instances        # By project"
-    echo "  claude-usage daily --compact          # Compact view"
-    echo "  claude-usage daily --help             # Show help"
+    echo "You can now use either:"
+    echo "  claude-usage daily --instances        # Full command"
+    echo "  gcu daily --instances                 # Short alias"
     echo ""
     echo "Run 'make help' for more commands."
+    echo "Run './setup-aliases.sh' to update aliases later."
 else
     echo "⚠️  Installation completed but binary not found in PATH."
     echo "You can run it with: ./claude-usage or add it to your PATH."

@@ -53,20 +53,16 @@ go install github.com/pyrex41/claude-usage/cmd/claude-usage@latest
 
 ### Basic Commands
 
+**You can use either the full command or the short alias:**
+
 ```bash
-# Daily report
-claude-usage daily
+# Using short alias (recommended)
+gcu daily                    # Daily report
+gcu daily --instances        # Group by project (most useful)
+gcu daily --compact          # Compact table view
 
-# Group by project (most useful)
-claude-usage daily --instances
-
-# Compact table view
-claude-usage daily --compact
-
-# Filter by date range
+# Using full command
 claude-usage daily --since 20240101 --until 20240331
-
-# Filter by specific project
 claude-usage daily --project fg
 ```
 
@@ -78,7 +74,9 @@ claude-usage daily --breakdown     # Detailed model breakdown
 claude-usage daily --help          # Show all options
 ```
 
-**Pro tip:** Use `--instances --compact` for the most readable project-based view.
+**Pro tip:** Use `gcu daily --instances --compact` for the most readable project-based view.
+
+The installer automatically sets up `gcu` as an alias for `claude-usage` in bash, zsh, and fish.
 
 ## Flags
 
