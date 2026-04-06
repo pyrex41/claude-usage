@@ -1,0 +1,142 @@
+# SCUD Graph v1
+# Phase: init
+
+@meta {
+  name init
+  updated 2026-04-06T15:20:00Z
+}
+
+@nodes
+# id | title | status | complexity | priority
+1 | Analyze original codebase and requirements | P | 3 | H
+2 | Design high-level architecture and optimizations | X | 5 | H
+2.1 | Outline modular architecture with layers | P | 0 | H
+2.2 | Define key optimizations | P | 0 | H
+3 | Set up new project structure and dependencies | P | 2 | H
+4 | Implement streaming JSONL parser | X | 5 | H
+4.1 | Design data models and error handling structure | P | 0 | H
+4.2 | Implement streaming JSONL parser logic | P | 0 | H
+5 | Implement aggregator with efficient data structures | X | 8 | H
+5.1 | Define efficient data structures and models | P | 0 | H
+5.2 | Implement single-pass aggregation logic | P | 0 | H
+6 | Implement CLI argument parsing | P | 3 | H
+7 | Implement report formatters | X | 5 | H
+7.1 | Implement JSON output formatter | P | 0 | H
+7.2 | Implement terminal table and compact mode formatters | P | 0 | H
+8 | Integrate MCP server | X | 5 | H
+8.1 | Set up MCP server foundation | P | 0 | H
+8.2 | Integrate server with CLI and offline mode | P | 0 | H
+9 | Add comprehensive tests | X | 5 | H
+9.1 | Write unit tests for parser logic | P | 0 | H
+9.2 | Write unit tests for aggregator and formatter logic | P | 0 | H
+10 | Perform performance benchmarking and documentation | P | 3 | H
+
+@edges
+# dependent -> dependency
+2 -> 1
+2.2 -> 2.1
+3 -> 2
+4 -> 3
+4.1 -> 2.1
+4.2 -> 4.1
+5 -> 4
+5.1 -> 2.2
+5.2 -> 5.1
+6 -> 3
+7 -> 5
+7 -> 6
+7.1 -> 5
+7.2 -> 7.1
+8 -> 5
+8 -> 6
+8.1 -> 5
+8.2 -> 8.1
+9 -> 4
+9 -> 5
+9 -> 7
+9.1 -> 4
+9.2 -> 5
+9.2 -> 7
+10 -> 7
+10 -> 8
+10 -> 9
+
+@parents
+# parent: child1, child2
+2: 2.1, 2.2
+4: 4.1, 4.2
+5: 5.1, 5.2
+7: 7.1, 7.2
+8: 8.1, 8.2
+9: 9.1, 9.2
+
+@agents
+# id | agent_type | model_tier
+1 | planner | standard
+2 | planner | standard
+2.1 | planner | standard
+2.2 | planner | standard
+3 | fast-builder | fast
+4 | builder | standard
+4.1 | builder | standard
+4.2 | builder | standard
+5 | builder | smart
+5.1 | builder | smart
+5.2 | builder | smart
+6 | builder | standard
+7 | builder | standard
+7.1 | builder | standard
+7.2 | builder | standard
+8 | builder | standard
+8.1 | builder | standard
+8.2 | builder | standard
+9 | tester | standard
+9.1 | tester | standard
+9.2 | tester | standard
+10 | reviewer | standard
+
+@details
+1 | description |
+  Review the existing ccusage repository to understand current implementation, CLI interface, and feature set. Identify bottlenecks in performance and map out all required features for 100% parity.
+2 | description |
+  Outline modular architecture with parser, aggregator, formatter, CLI, and MCP packages suitable for Go. Emphasize simplicity, flexibility and making the tool just work. Define strategies for performance that do not compromise maintainability.
+2.1 | description |
+  Define the high-level modular architecture consisting of parser, aggregator, formatter, CLI, and MCP packages, including their responsibilities, interfaces, and data flow between them (using Go packages and structs).
+2.2 | description |
+  Specify approaches for performance (streaming with bufio, single-pass, goroutines where appropriate) while prioritizing simplicity and flexibility across the architecture.
+3 | description |
+  Create Go project structure with cmd/ccusage/main.go, internal/parser/, internal/aggregator/, etc. Update go.mod with minimal dependencies. Prioritize small binary size and simplicity.
+4 | description |
+  Build a streaming parser that reads JSONL files line-by-line without loading entire files into memory using bufio.Scanner. Focus on simplicity and robustness. Extract needed fields, with good error handling for malformed lines (skip them gracefully).
+4.1 | description |
+  Define Go structs for the fields to be extracted from JSONL lines, and create error handling for malformed JSON lines.
+4.2 | description |
+  Build the core parser that reads JSONL files line-by-line without loading into memory, parses each line as JSON using encoding/json, extracts only the needed fields efficiently, and handles errors for malformed lines.
+5 | description |
+  Create aggregator for single-pass processing using simple, effective data structures (prefer maps and structs). Support all report types (daily, monthly, blocks, sessions) with cache token tracking. Prioritize clarity and correctness.
+5.1 | description |
+  Define efficient data models using Go structs and maps for the aggregator. Focus on clarity. Include support for date bucketing and cache token tracking.
+5.2 | description |
+  Build the core aggregator logic for processing data in one pass, supporting daily, monthly, and block report types with efficient bucketing and caching.
+6 | description |
+  Set up command-line interface using the flag package (or cobra if necessary), supporting all existing flags like --since, --until, --project, --breakdown, --json, --compact, --offline, etc.
+7 | description |
+  Build formatters for terminal tables (using ANSI colors or small lib + custom rendering for speed), JSON output (encoding/json), and compact mode. Ensure colorful, proper formatting matches original.
+7.1 | description |
+  Create a formatter that outputs reports in JSON format, ensuring it matches the original data structure and is properly structured for machine-readable output.
+7.2 | description |
+  Build formatters for terminal tables using colors and custom rendering for speed, including a compact mode variant, ensuring colorful and proper formatting matches the original.
+8 | description |
+  Implement lightweight MCP server for exposing usage data, using HTTP or stdio. Ensure it integrates seamlessly with CLI and supports offline mode.
+8.1 | description |
+  Create the basic structure for the MCP server in Go, define schemas for usage data, and choose transport for lightweight communication.
+8.2 | description |
+  Implement the core logic to expose usage data via the MCP server, integrate seamlessly with the CLI interface, and ensure support for offline mode.
+9 | description |
+  Write unit tests for parser, aggregator, and formatter logic using sample JSONL data. Ensure correctness across all report types and edge cases using Go's testing.
+9.1 | description |
+  Create unit tests for the parser logic using sample JSONL data, verifying correct parsing of various data formats and handling basic cases.
+9.2 | description |
+  Create unit tests for the aggregator and formatter logic using sample JSONL data, ensuring correctness across all report types and comprehensive coverage of edge cases.
+10 | description |
+  Benchmark against original on large datasets, document 5-10x speedup. Update README with architecture, optimizations, and usage. Ensure the binary is small and fast.
